@@ -415,6 +415,18 @@
                   It pushes you to make states explicit (enums), model
                   invariants, and handle errors properly.
                 </li>
+                <li>
+                  <strong>No nulls</strong>: there is no <code>null</code>.
+                  Instead, Rust encodes absence and errors in the type system:
+                  <ul>
+                    <li><code>Option&lt;T&gt;</code> for “value or nothing”</li>
+                    <li>
+                      <code>Result&lt;T, E&gt;</code> for “success or error”
+                    </li>
+                  </ul>
+                  This can feel <strong>confusing at first</strong>, but it
+                  forces you to handle all cases explicitly.
+                </li>
               </ul>
             </ul>
           </div>
@@ -450,36 +462,48 @@
         </section>
 
         <section>
-          <h3>Quick Overview of the session</h3>
+          <h3>Quick overview of the session</h3>
           <div class="lots_of_items2">
             <ul>
               <li>
-                Provide an explanation of the tasks to be completed (via
-                slides), showcasing the corresponding code. Engage actively by
-                asking questions.
-              </li>
-              <li>
-                At each step of the workshop, we’ll offer two options:
+                Each step starts with <strong>slides</strong>:
                 <ul>
+                  <li>explanation of the goal,</li>
+                  <li>key concepts and points of attention.</li>
+                </ul>
+              </li>
+
+              <li>
+                Then we move to the code:
+                <ul>
+                  <li>we use <code>cargo test</code> to run the test suite,</li>
                   <li>
-                    <strong>Move on</strong> if you feel the current part is
-                    clear and doesn’t need further exploration.
+                    most of the time, <strong>tests will fail</strong> and you
+                    will need to <strong>fix the code</strong>,
                   </li>
                   <li>
-                    <strong>Take some time to experiment</strong>: you can
-                    <code>git checkout</code> the relevant branch and play with
-                    the code.
+                    don’t hesitate to <strong>ask for help</strong> or request
+                    additional explanations.
                   </li>
                 </ul>
               </li>
 
               <li>
-                We’ll make the decision <strong>together</strong>, most likely
-                with a <strong>show of hands</strong>.
+                Important note:
+                <ul>
+                  <li>
+                    sometimes the code is correct and
+                    <strong>the tests need to be fixed instead</strong>.
+                  </li>
+                </ul>
               </li>
+
               <li>
-                The goal is to <strong>adjust the pace</strong> based on your
-                needs, without wasting time if everyone is comfortable.
+                We decide <strong>together</strong> how to proceed:
+                <ul>
+                  <li>we fix things live if needed,</li>
+                  <li>or we move on if the audience feels comfortable.</li>
+                </ul>
               </li>
             </ul>
           </div>
@@ -556,9 +580,6 @@
               <li><strong>Error handling strategy</strong></li>
               <ul>
                 <li>
-                  <code>dotenvy</code> — load configuration from environment
-                </li>
-                <li>
                   <code>thiserror</code> — structured errors in
                   <strong>libraries</strong>
                 </li>
@@ -572,6 +593,60 @@
                     <li><strong>Libraries</strong>: typed, explicit errors</li>
                     <li>
                       <strong>Binaries</strong>: flexible error propagation
+                    </li>
+                  </ul>
+                </li>
+              </ul>
+            </ul>
+          </div>
+        </section>
+
+        <section>
+          <h3>Part 1 — Crates</h3>
+          <div class="lots_of_items2">
+            <ul>
+              <li><strong>dotenvy</strong></li>
+              <ul>
+                <li>
+                  Loads environment variables from a <code>.env</code> file.
+                </li>
+                <li>
+                  Useful to keep configuration outside the code (API keys,
+                  endpoints, feature flags).
+                </li>
+              </ul>
+
+              <li><strong>tracing</strong></li>
+              <ul>
+                <li>
+                  The <strong>go-to crate</strong> to instrument Rust
+                  applications.
+                </li>
+                <li>
+                  Designed to measure and observe execution:
+                  <ul>
+                    <li>structured logs,</li>
+                    <li>timings and latencies,</li>
+                    <li><strong>spans</strong> to follow execution paths.</li>
+                  </ul>
+                </li>
+                <li>
+                  Can export data to <strong>OpenTelemetry</strong> for advanced
+                  observability.
+                </li>
+                <li>
+                  In this workshop:
+                  <ul>
+                    <li>
+                      we rely on
+                      <strong><code>log</code> compatibility</strong>,
+                    </li>
+                    <li>and write logs to a <strong>file</strong>,</li>
+                    <li>
+                      which is essential for debugging because
+                      <strong
+                        >stdout / stderr are not available in TUI mode</strong
+                      >.
                     </li>
                   </ul>
                 </li>
