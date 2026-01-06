@@ -18,8 +18,8 @@
 2. Clone the repo with the sub modules (reveal.js).
 
 ```
-git clone --recurse-submodules https://github.com/uggla/bevy_university
-cd bevy_university/reveal.js
+git clone --recurse-submodules https://github.com/uggla/async_rust_tui
+cd async_rust_tui/reveal.js
 npm install
 cd..
 ```
