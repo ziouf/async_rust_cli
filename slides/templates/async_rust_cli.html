@@ -341,18 +341,9 @@
         </section>
 
         <section>
-          <h3>Disclaimer & quick poll</h3>
+          <h3>Quick poll</h3>
           <div class="lots_of_items2">
             <ul>
-              <li>
-                This session is labeled as <strong>intermediate</strong>.
-                <ul>
-                  <li>
-                    If you missed it, no worries — it happens quite often 🙂
-                  </li>
-                </ul>
-              </li>
-
               <li>
                 To adapt the pace and the level of details, let’s do a quick
                 poll:
@@ -370,7 +361,6 @@
                     What is your main background?
                     <ul>
                       <li>low-level (C / C++)</li>
-                      <li>systems / backend (Rust, Go, Java, etc.)</li>
                       <li>high-level (Python, JavaScript, etc.)</li>
                     </ul>
                   </li>
@@ -1367,124 +1357,40 @@ let json = serde_json::to_string(&place)?;
         </section>
 
         <!-- ======================== -->
-        <!-- BLOC 4 :  Config and CLI
+        <!-- BLOC 4 :  CLI for places
         <!-- ======================== -->
         <section>
-          <h3>Part 4 - Config and CLI</h3>
-          <img src="images/part04.jpg" alt="Config and CLI" width="77%" />
+          <h3>Part 4 - CLI for places</h3>
+          <img src="images/part04.jpg" alt="CLI for places" width="77%" />
         </section>
 
         <section>
-          <h3>Part 4 — Config and CLI</h3>
+          <h3>Part 4 — CLI for places</h3>
           <div class="lots_of_items2">
             <ul>
               <li>
-                <strong>Goal</strong>: configure the application with
-                <strong>start</strong> and
-                <strong>destination</strong> stations.
-              </li>
-
-              <li>
-                Configuration is persisted in
-                <strong><code>config.toml</code></strong
-                >.
-              </li>
-
-              <li>
-                Startup logic:
+                We start by defining the command structure:
                 <ul>
+                  <li>a root command (the binary),</li>
                   <li>
-                    <strong>No config file</strong>:
-                    <ul>
-                      <li>launch the CLI station picker,</li>
-                      <li>
-                        we cannot start the refresh task yet (stations are
-                        unknown),
-                      </li>
-                      <li>
-                        save the selected stations to <code>config.toml</code>.
-                      </li>
-                    </ul>
-                  </li>
-
-                  <li>
-                    <strong>Config file exists</strong>:
-                    <ul>
-                      <li>
-                        for now we still show the same screen (simpler flow),
-                      </li>
-                      <li>but we also start the background refresh task,</li>
-                      <li>
-                        it should periodically emit messages in the
-                        <strong>logs</strong>.
-                      </li>
-                    </ul>
+                    two subcommands: <code>places</code> and
+                    <code>journeys</code>.
                   </li>
                 </ul>
               </li>
 
               <li>
-                This is the first step toward a full CLI dashboard:
+                In this part, we implement only the first subcommand:
+                <strong><code>places</code></strong>
                 <ul>
-                  <li>configuration screen → then live data screen.</li>
-                </ul>
-              </li>
-            </ul>
-          </div>
-        </section>
-
-        <section>
-          <h3>Part 4 — Crates: RataCLI & Crossterm</h3>
-          <div class="lots_of_items2">
-            <ul>
-              <li>
-                <strong>RataCLI</strong>
-                <ul>
+                  <li>query SNCF places by name (search string),</li>
                   <li>
-                    a Rust library to build rich
-                    <strong>terminal user interfaces</strong> (CLIs)
+                    print matching results:
+                    <strong>place ID + place name</strong>,
                   </li>
                   <li>
-                    widgets: <code>Block</code>, <code>Paragraph</code>,
-                    <code>List</code>, <code>Table</code>, etc.
-                  </li>
-                  <li>
-                    layout system to split the screen and render components
-                  </li>
-                  <li>
-                    render loop friendly: draw the UI repeatedly from the
-                    current state
-                  </li>
-                </ul>
-              </li>
-
-              <li>
-                <strong>Crossterm</strong>
-                <ul>
-                  <li>cross-platform terminal control and input</li>
-                  <li>
-                    keyboard events, mouse events (optional), terminal resize
-                  </li>
-                  <li>
-                    enables CLI mode:
-                    <ul>
-                      <li><strong>raw mode</strong> (no line buffering)</li>
-                      <li>
-                        <strong>alternate screen</strong> (clean full-screen UI)
-                      </li>
-                    </ul>
-                  </li>
-                </ul>
-              </li>
-
-              <li>
-                How they work together:
-                <ul>
-                  <li>Crossterm handles terminal + events</li>
-                  <li>RataCLI renders widgets into a terminal backend</li>
-                  <li>
-                    we must always <strong>restore</strong> the terminal on exit
-                    (even on panic)
+                    useful to discover the IDs needed for the
+                    <code>journeys</code> command.
                   </li>
                 </ul>
               </li>
@@ -1493,153 +1399,43 @@ let json = serde_json::to_string(&place)?;
         </section>
 
         <section>
-          <h3>Part 4 — Raw mode & alternate screen</h3>
+          <h3>Part 4 — CLI with clap</h3>
           <div class="lots_of_items2">
             <ul>
               <li>
-                <strong>Raw mode</strong>
+                <strong>clap</strong> is the de facto standard crate for
+                building command-line interfaces in Rust.
+              </li>
+
+              <li>
+                Key features:
                 <ul>
-                  <li>disables the terminal’s default line buffering</li>
+                  <li>argument parsing and validation,</li>
+                  <li>subcommands support,</li>
                   <li>
-                    key presses are sent immediately to the application (no need
-                    to press Enter)
+                    auto-generated <code>--help</code> and usage messages,
                   </li>
                   <li>
-                    special keys are exposed as events (<code>Up</code>,
-                    <code>Down</code>, <code>Esc</code>, etc.)
+                    type-safe arguments (parsed directly into Rust types).
                   </li>
                 </ul>
               </li>
 
               <li>
-                What changes compared to normal mode:
+                We use the <strong>derive macros</strong>:
                 <ul>
-                  <li>no automatic echo of typed characters</li>
-                  <li>no terminal-side editing (backspace, arrows, etc.)</li>
-                  <li>
-                    the application is fully responsible for input handling
-                  </li>
-                </ul>
-              </li>
-
-              <li>
-                <strong>Alternate screen</strong>
-                <ul>
-                  <li>switches to a separate, temporary screen buffer</li>
-                  <li>the original terminal content is preserved</li>
-                  <li>
-                    on exit, the previous screen is restored automatically
-                  </li>
-                </ul>
-              </li>
-
-              <li>
-                Why both are important for CLIs:
-                <ul>
-                  <li>raw mode enables responsive, interactive input</li>
-                  <li>alternate screen provides a clean full-screen UI</li>
-                  <li>
-                    together, they allow building apps that behave like native
-                    tools
-                  </li>
-                </ul>
-              </li>
-
-              <li>
-                <strong>Note</strong>:
-                <ul>
-                  <li>
-                    stdout / stderr output (<code>println!</code>,
-                    <code>eprintln!</code>) will not work properly anymore,
-                  </li>
-                  <li>
-                    use logging to a file instead (e.g. <code>tracing</code>).
-                  </li>
-                </ul>
-              </li>
-            </ul>
-          </div>
-        </section>
-
-        <section>
-          <h3>Part 4 — Modular CLI structure (MVP)</h3>
-          <div class="lots_of_items2">
-            <ul>
-              <li>
-                The CLI code is split into small modules to stay maintainable:
-                <ul>
-                  <li>
-                    <code>app.rs</code> — application state and update logic
-                  </li>
-                  <li><code>ui.rs</code> — rendering (widgets + layout)</li>
-                  <li><code>event.rs</code> — input/events handling</li>
-                </ul>
-              </li>
-
-              <li>
-                This matches an <strong>MVP-like</strong> architecture:
-                <ul>
-                  <li>
-                    <strong>Model</strong>: app state (<code>app.rs</code>)
-                  </li>
-                  <li>
-                    <strong>View</strong>: terminal UI (<code>ui.rs</code>)
-                  </li>
-                  <li>
-                    <strong>Presenter</strong>: event loop + updates
-                    (<code>event.rs</code>)
-                  </li>
+                  <li><code>#[derive(Parser)]</code> for the root command,</li>
+                  <li><code>#[derive(Subcommand)]</code> for subcommands,</li>
+                  <li>arguments defined as struct fields with attributes.</li>
                 </ul>
               </li>
 
               <li>
                 Benefits:
                 <ul>
-                  <li>clear separation of concerns,</li>
-                  <li>easier to test and reason about,</li>
-                  <li>UI can evolve without rewriting everything.</li>
-                </ul>
-              </li>
-            </ul>
-          </div>
-        </section>
-        <section>
-          <h3>Part 4 — Snapshot testing with insta</h3>
-          <div class="lots_of_items2">
-            <ul>
-              <li>
-                <strong>insta</strong> is a snapshot testing library for Rust.
-                <ul>
-                  <li>captures the output of a function,</li>
-                  <li>stores it as a snapshot,</li>
-                  <li>compares future runs against it.</li>
-                </ul>
-              </li>
-
-              <li>
-                Why snapshot testing fits CLIs well:
-                <ul>
-                  <li>CLIs are hard to test with traditional assertions,</li>
-                  <li>the rendered output is mostly text-based,</li>
-                  <li>snapshots make visual regressions easy to spot.</li>
-                </ul>
-              </li>
-
-              <li>
-                In this project:
-                <ul>
-                  <li>we snapshot the input screen rendering,</li>
-                  <li>without starting a real terminal,</li>
-                  <li>by testing the UI logic in isolation.</li>
-                </ul>
-              </li>
-
-              <li>
-                Workflow:
-                <ul>
-                  <li>run tests → snapshot is created or compared,</li>
-                  <li>review changes explicitly when the UI evolves,</li>
-                  <li>accept updates when they are intentional.</li>
+                  <li>declarative CLI definition,</li>
+                  <li>less boilerplate than manual parsing,</li>
+                  <li>clear and maintainable command structure.</li>
                 </ul>
               </li>
             </ul>
@@ -1660,14 +1456,7 @@ let json = serde_json::to_string(&place)?;
                     <strong>understand the structure</strong> and
                     <strong>play with the code</strong>
                   </li>
-                  <li>
-                    don’t hesitate to explore:
-                    <ul>
-                      <li>change a widget,</li>
-                      <li>tweak navigation,</li>
-                      <li>inspect logs and state updates.</li>
-                    </ul>
-                  </li>
+                  <li>don’t hesitate to explore:</li>
                 </ul>
               </li>
 
@@ -1689,11 +1478,11 @@ let json = serde_json::to_string(&place)?;
         </section>
 
         <!-- =========================== -->
-        <!-- BLOC 5 :  CLI and Dashboard
+        <!-- BLOC 5 :  CLI for journeys
         <!-- =========================== -->
         <section>
-          <h3>Part 5 - CLI and Dashboard</h3>
-          <img src="images/part05.jpg" alt="CLI and Dashboard" width="37%" />
+          <h3>Part 5 - CLI for journeys</h3>
+          <img src="images/part05.jpg" alt="CLI for journeys" width="37%" />
         </section>
 
         <section>
