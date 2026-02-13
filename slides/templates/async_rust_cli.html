@@ -643,7 +643,7 @@
         </section>
 
         <section>
-          <h3>Part 1 — Setup your project correctly</h3>
+          <h3>Part 1 — Project layout and core files</h3>
           <div class="lots_of_items2">
             <ul>
               <li><strong>Workspace-based project</strong></li>
@@ -669,18 +669,38 @@
                   <ul>
                     <li>clear separation of concerns,</li>
                     <li>reusable logic,</li>
-                    <li>faster rebuilds when working on the UI.</li>
+                    <li>faster rebuilds when working on the UI / CLI.</li>
                   </ul>
                 </li>
               </ul>
 
-              <li><strong>Crate boundaries</strong></li>
+              <li><strong>Key project files</strong></li>
               <ul>
-                <li><code>lib.rs</code> — public API of a crate</li>
-                <li><code>main.rs</code> — binary entry point</li>
                 <li>
-                  The binary imports and uses the API crate like any external
-                  dependency.
+                  <code>main.rs</code> — binary entry point
+                  <ul>
+                    <li>CLI / application startup,</li>
+                    <li>wires configuration, runtime, and top-level logic.</li>
+                  </ul>
+                </li>
+                <li>
+                  <code>lib.rs</code> — library root
+                  <ul>
+                    <li>exposes the public API of a crate,</li>
+                    <li>contains reusable and testable logic.</li>
+                  </ul>
+                </li>
+                <li>
+                  <code>Cargo.toml</code> — project manifest
+                  <ul>
+                    <li>dependencies, features, binaries, metadata.</li>
+                  </ul>
+                </li>
+                <li>
+                  <code>Cargo.lock</code> — dependency lockfile
+                  <ul>
+                    <li>exact versions used to ensure reproducible builds.</li>
+                  </ul>
                 </li>
               </ul>
             </ul>
@@ -718,6 +738,35 @@
                     <li><strong>Libraries</strong>: typed, explicit errors</li>
                     <li>
                       <strong>Binaries</strong>: flexible error propagation
+                    </li>
+                  </ul>
+                </li>
+              </ul>
+
+              <li>
+                <strong>Logging with <code>RUST_LOG</code></strong>
+              </li>
+              <ul>
+                <li>
+                  <code>RUST_LOG</code> is an environment variable used to
+                  <strong>control log verbosity</strong>.
+                </li>
+                <li>
+                  It works with <code>tracing</code> (via log compatibility) and
+                  <code>env_logger</code>-style filters.
+                </li>
+                <li>
+                  Examples:
+                  <ul>
+                    <li>
+                      <code>RUST_LOG=info</code> — show info, warn, and error
+                      logs
+                    </li>
+                    <li><code>RUST_LOG=debug</code> — include debug logs</li>
+                    <li>
+                      <code>RUST_LOG=sncf=debug</code> — debug only the
+                      <code>sncf</code>
+                      crate
                     </li>
                   </ul>
                 </li>
@@ -795,7 +844,7 @@
               <li>
                 We move to <strong>async</strong> early on:
                 <ul>
-                  <li>to avoid blocking the future TUI loop,</li>
+                  <li>to avoid blocking the future CLI loop,</li>
                   <li>
                     to later perform
                     <strong>real API requests asynchronously</strong>,
@@ -1424,8 +1473,6 @@ let json = serde_json::to_string(&place)?;
               <li>
                 We use the <strong>derive macros</strong>:
                 <ul>
-                  <li><code>#[derive(Parser)]</code> for the root command,</li>
-                  <li><code>#[derive(Subcommand)]</code> for subcommands,</li>
                   <li>arguments defined as struct fields with attributes.</li>
                 </ul>
               </li>
@@ -1486,169 +1533,42 @@ let json = serde_json::to_string(&place)?;
         </section>
 
         <section>
-          <h3>Part 5 — Goal</h3>
+          <h3>Part 5 — CLI for journeys</h3>
           <div class="lots_of_items2">
             <ul>
               <li>
-                <strong>Goal</strong>: display a real-time dashboard of journeys
-                between the configured <strong>start</strong> and
-                <strong>destination</strong> stations.
+                <strong>Goal</strong>: implement the
+                <strong><code>journeys</code></strong>
+                subcommand.
               </li>
 
               <li>
-                The screen is split into two panels:
+                What it does:
                 <ul>
                   <li>
-                    <strong>Left panel</strong>: journeys list (table)
-                    <ul>
-                      <li>departure date/time,</li>
-                      <li>travel duration,</li>
-                      <li>number of transfers / changes.</li>
-                    </ul>
+                    call <code>fetch_journeys()</code> for the configured route,
                   </li>
-
-                  <li>
-                    <strong>Right panel</strong>: countdown timer
-                    <ul>
-                      <li>
-                        time remaining from <strong>now</strong> until the
-                        selected departure,
-                      </li>
-                      <li>big, readable <code>HH:MM:SS</code> display.</li>
-                    </ul>
-                  </li>
+                  <li>sort journeys by <strong>departure time</strong>,</li>
+                  <li>display a readable list in the terminal.</li>
                 </ul>
               </li>
 
               <li>
-                <strong>Background refresh task</strong>:
+                Periodic refresh:
                 <ul>
-                  <li>
-                    periodically fetches journeys from the SNCF API (<strong
-                      >every 30 seconds</strong
-                    >),
-                  </li>
-                  <li>sends updated data to the dashboard,</li>
-                  <li>
-                    the UI refreshes automatically based on received data.
-                  </li>
-                </ul>
-              </li>
-            </ul>
-          </div>
-        </section>
-
-        <section>
-          <h3>Part 5 — CLI-big-text (large ASCII rendering)</h3>
-          <div class="lots_of_items2">
-            <ul>
-              <li>
-                <strong>CLI-big-text</strong> is a small helper crate built on
-                top of <strong>RataCLI</strong>.
-              </li>
-
-              <li>
-                You can think of it as a <strong>plugin-like widget</strong>:
-                <ul>
-                  <li>it renders text using large ASCII-style characters,</li>
-                  <li>designed to be easily embedded in a RataCLI layout.</li>
+                  <li>spawn a background task,</li>
+                  <li>fetch new journeys <strong>every 30 seconds</strong>,</li>
+                  <li>send results to the main loop via a channel.</li>
                 </ul>
               </li>
 
               <li>
-                In our dashboard:
+                Time handling:
                 <ul>
-                  <li>used to display the countdown timer,</li>
+                  <li>use <strong>jiff</strong> to compute timestamps,</li>
                   <li>
-                    large <code>HH:MM:SS</code> format, readable at a glance.
+                    compute remaining time until departure for each journey.
                   </li>
-                </ul>
-              </li>
-            </ul>
-          </div>
-        </section>
-
-        <section>
-          <h3>Part 5 — Desktop notifications with notify-rust</h3>
-          <div class="lots_of_items2">
-            <ul>
-              <li>
-                <strong>notify-rust</strong> is a Rust crate to send
-                <strong>desktop notifications</strong>.
-              </li>
-
-              <li>
-                It integrates with the operating system’s notification system
-                (when supported).
-              </li>
-
-              <li>
-                In our dashboard:
-                <ul>
-                  <li>
-                    when the countdown timer reaches <strong>zero</strong>,
-                  </li>
-                  <li>a notification is sent to the OS,</li>
-                  <li>
-                    to alert the user that the departure time has arrived.
-                  </li>
-                </ul>
-              </li>
-
-              <li>
-                The notification is sent <strong>only once</strong>:
-                <ul>
-                  <li>tracked via internal timer state,</li>
-                  <li>to avoid spamming the user.</li>
-                </ul>
-              </li>
-            </ul>
-          </div>
-        </section>
-
-        <section>
-          <h3>Part 5 — One of the challenges</h3>
-          <div class="lots_of_items2">
-            <ul>
-              <li>
-                One important challenge in this part is how to
-                <strong>manage the HTTP client</strong>.
-              </li>
-
-              <li>
-                In <strong>Timer mode</strong> (the dashboard):
-                <ul>
-                  <li>
-                    the HTTP client is currently used
-                    <strong>only by the background refresh task</strong>,
-                  </li>
-                  <li>
-                    the CLI loop only consumes the refreshed data (it does not
-                    call the API directly).
-                  </li>
-                </ul>
-              </li>
-
-              <li>
-                This makes one solution tempting:
-                <ul>
-                  <li>keep the HTTP client entirely inside the task.</li>
-                </ul>
-              </li>
-
-              <li>
-                But we want the design to stay flexible:
-                <ul>
-                  <li>
-                    future features may require HTTP calls from other places
-                    (CLI actions, details view, manual refresh, etc.),
-                  </li>
-                  <li>
-                    one possible direction is to make the HTTP client a
-                    <strong>property of the application state</strong>
-                    (<code>App</code>),
-                  </li>
-                  <li>so it can be shared when needed, without duplication.</li>
                 </ul>
               </li>
             </ul>
@@ -1662,34 +1582,26 @@ let json = serde_json::to_string(&place)?;
               <li>Run the tests with <code>cargo t</code> and fix failures.</li>
 
               <li>
-                This part introduces <strong>new behaviors and state</strong>:
+                But this part includes <strong>a lot of code changes</strong>:
                 <ul>
-                  <li>background data refresh,</li>
-                  <li>timer and countdown logic,</li>
-                  <li>UI updates driven by incoming data.</li>
+                  <li>
+                    the most important goal is to
+                    <strong>understand the structure</strong> and
+                    <strong>play with the code</strong>
+                  </li>
+                  <li>don’t hesitate to explore:</li>
                 </ul>
               </li>
 
               <li>
-                One part is intentionally a bit tricky:
+                Error handling is part of the exercise:
                 <ul>
                   <li>
-                    the HTTP client must be used across asynchronous boundaries,
-                  </li>
-                  <li>and the code needs to compile and remain correct.</li>
-                </ul>
-              </li>
-
-              <li>
-                A suggested approach:
-                <ul>
-                  <li>
-                    first, <strong>make the code compile</strong>, even if it
-                    means using multiple client instances,
+                    handle the case where the user provides an
+                    <strong>invalid place ID</strong>,
                   </li>
                   <li>
-                    then, step back and think about
-                    <strong>a better way to share the client</strong>.
+                    return a clear and user-friendly error instead of crashing.
                   </li>
                 </ul>
               </li>
@@ -1698,12 +1610,12 @@ let json = serde_json::to_string(&place)?;
                 Please ask questions!
                 <ul>
                   <li>
-                    this is a good opportunity to discuss ownership, sharing,
-                    and async design choices,
+                    if something is unclear, stop and ask — we will explain it
+                    together
                   </li>
                   <li>
-                    the goal is to understand the trade-offs, not just the final
-                    solution.
+                    the goal is to learn the patterns, not to “speedrun” the
+                    commit
                   </li>
                 </ul>
               </li>
