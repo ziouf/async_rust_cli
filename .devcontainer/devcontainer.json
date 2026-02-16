@@ -1,50 +1,46 @@
 // For format details, see https://aka.ms/devcontainer.json. For config options, see the
 // README at: https://github.com/devcontainers/templates/tree/main/src/rust
 {
-	"name": "Rust",
-	// Or use a Dockerfile or Docker Compose file. More info: https://containers.dev/guide/dockerfile
-	"image": "mcr.microsoft.com/devcontainers/rust",
-	"hostRequirements": {
-		"cpus": 4,
-		"gpu": false
-	},
-	"features": {
-		"ghcr.io/devcontainers/features/python": {
-			"installTools": true,
-			"toolsToInstall": "uv"
-		}
-	},
-	"portsAttributes": {
-		"\\./server.py": {
-			"label": "Slides Server",
-			"protocol": "http",
-			"onAutoForward": "openPreview"
-		}
-	},
-	"initializeCommand": {
-		"gitconfig": ".devcontainer/gitconfig.sh init"
-	},
-	"onCreateCommand": {
-		"reveal.js": "git submodule init && git submodule update"
-	},
-	"postAttachCommand": {
-		"gitconfig": ".devcontainer/gitconfig.sh postAttach"
-	},
-	"customizations": {
-		"vscode": {
-			"extensions": [
-				"rust-lang.rust-analyzer",
-				"Gruntfuggly.todo-tree",
-				"maattdd.gitless"
-			],
-			"settings": {
-				"todo-tree.general.tags": ["TODO","Fix","Fixme","FIXME","***DO***"],
-				"todo-tree.general.automaticGitRefreshInterval": 0,
-				"todo-tree.filtering.ignoreGitSubmodules": true
-			}
-		}
-	},
-	"secrets": {
-		"SNCF_API_KEY": {"description": "SNCF API Key", "documentationUrl": "https://numerique.sncf.com/startup/api/token-developpeur/"}
-	}
+  "name": "Rust",
+  // Or use a Dockerfile or Docker Compose file. More info: https://containers.dev/guide/dockerfile
+  "image": "mcr.microsoft.com/devcontainers/rust",
+  "hostRequirements": {
+    "cpus": 4,
+    "gpu": false
+  },
+  "runArgs": ["--security-opt=label=disable"],
+  "features": {
+    "ghcr.io/devcontainers/features/python": {
+      "installTools": true,
+      "toolsToInstall": "uv"
+    }
+  },
+  "portsAttributes": {
+    "\\./server.py": {
+      "label": "Slides Server",
+      "protocol": "http",
+      "onAutoForward": "openPreview"
+    }
+  },
+  "initializeCommand": {},
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "rust-lang.rust-analyzer",
+        "Gruntfuggly.todo-tree",
+        "maattdd.gitless"
+      ],
+      "settings": {
+        "todo-tree.general.tags": ["TODO", "Fix", "Fixme", "FIXME", "***DO***"],
+        "todo-tree.general.automaticGitRefreshInterval": 0,
+        "todo-tree.filtering.ignoreGitSubmodules": true
+      }
+    }
+  },
+  "secrets": {
+    "SNCF_API_KEY": {
+      "description": "SNCF API Key",
+      "documentationUrl": "https://numerique.sncf.com/startup/api/token-developpeur/"
+    }
+  }
 }
